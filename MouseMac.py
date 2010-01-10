@@ -15,7 +15,7 @@ class UserEmulation(UserEmulationMeta):
     def releaseButton(self, x, y, button = 1):
         CGPostMouseEvent((x, y), 1, 3, 0, 0, 0)
     
-    def clic(self, x, y, button = 1):
+    def click(self, x, y, button = 1):
         self.pressButton(x, y, button)
         self.releaseButton(x, y, button)
     

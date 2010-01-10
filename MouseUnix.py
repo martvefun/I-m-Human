@@ -1,41 +1,37 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-from Xlib.display import Display
-from Xlib import X, XK
-from Xlib.protocol import event
+import Xlib.display
+import Xlib.X
+import Xlib.XK
 import Xlib.ext.xtest
-import time
+
+#import Xlib.protocol.event
 
 class MouseUnix(object):
 
     def __init__(self):
-        self.display = Display(":0")
+        self.display = Xlib.display.Display()
         self.root = self.display.screen().root
 
     def pressButton(self, x, y, button = 1):
-        # TODO : do it with focus.send_event
+        # TODO : do it with Xlib.protocol.event
         self.move(x, y)
-        Xlib.ext.xtest.fake_input(self.display, X.ButtonPress, button)
+        Xlib.ext.xtest.fake_input(self.display, Xlib.X.ButtonPress, button)
         self.display.sync()
 
 
     def releaseButton(self, x, y, button = 1):
-        # TODO : do it with focus.send_event
+        # TODO : do it with Xlib.protocol.event
         self.move(x, y)
-        Xlib.ext.xtest.fake_input(self.display, X.ButtonRelease, button)
+        Xlib.ext.xtest.fake_input(self.display, Xlib.X.ButtonRelease, button)
         self.display.sync()
 	
 
-    def clic(self, x, y, button = 1):
-        # TODO : do it with focus.send_event
-        try:
-            self.pressButton(x, y, button)
-            self.releaseButton(x, y, button)
-        except:
-            self.move(x, y)
-            Xlib.ext.xtest.fake_input (self.display, X.ButtonPress, button)
-            Xlib.ext.xtest.fake_input (self.display, X.ButtonRelease, button)
+    def click(self, x, y, button = 1):
+        # TODO : do it with Xlib.protocol.event
+        self.pressButton(x, y, button)
+        self.releaseButton(x, y, button)
         self.display.sync()
 
 

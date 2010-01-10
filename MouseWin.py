@@ -46,6 +46,10 @@ class UserEmulation(UserEmulationMeta):
         self.move(x, y)
         blob[1].ii.mi.dwFlags = releases[button]
         windll.user32.SendInput(2,pointer(blob),sizeof(blob[0]))
+        
+    def click(self, x, y, button = 1):
+        self.pressButton(x, y, button)
+        self.releaseButton(x, y, button)
 
     def move(self, x, y):
         windll.user32.SetCursorPos(x, y)

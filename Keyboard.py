@@ -29,7 +29,7 @@ class Keyboard(object):
         # TODO : check input
         OSKeyboard.write(self.k, string)
 
-    def writeEasy(self, string, speed=1.0):
+    def writeHuman(self, string, speed=1.0):
         # TODO : check input
         for ch in string:
             OSKeyboard.writeLetter(self.k, ch)

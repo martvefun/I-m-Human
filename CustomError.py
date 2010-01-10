@@ -22,7 +22,7 @@ class InputError(Error):
         return self.expr+" : "+self.msg
 
         
-class NotValidInt(Error):
+class NotValidIntError(Error):
     """Exception raised if a parameter passed is not a valid int
 
     Attributes:
@@ -37,7 +37,7 @@ class NotValidInt(Error):
         
        
         
-class NotValidButton(Error):
+class NotValidButtonError(Error):
     """Exception raised if a button is incorrect
 
     Attributes:

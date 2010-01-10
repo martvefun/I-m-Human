@@ -13,94 +13,96 @@ except ImportError:
   except ImportError:
     raise ImportError
 
-import sys, traceback
+import os, time
 
-
-def start():
-    print """
-           *** I am human ***
-           par martin trigaux
-            
-    Merci d'utiliser mon programme, j'espère que vous allez le trouver utile
-    Si vous avez un commentaire, n'hésitez pas à m'en faire part
-
-        [1] créer une nouvelle liste
-        [2] charger et exécuter une liste existante
-        [?] a propos
-        [x] quitter
-        """
-    return raw_input("Que voulez vous faire ? ")
 
 def createList():
     
-    fileName=raw_input("Enter le nom de votre nouvelle liste : ")
+    fileName=raw_input("Enter the name of the new list : ")
+
+    if not os.path.exists("script/"):
+        os.makedirs("script")
+    if os.path.isfile("script/"+fileName+".json"):
+        ok= raw_input("this scripts exist already, do you want to replace ? [y/n] ")
+        if (ok=="n") | (ok=="no"):
+            return 0
+    else:
+        print "script/"+fileName+".json doesn't exist"
     
     listAction=[]
     print """
-voici les commandes disponibles :
-move, x, y                    # bouge la souris en x, y (position [0;0] est
-                              #   ...dans le coin supérieur droit)
-moveEasy, x, y, vitesse       # bouge la souris progressivement, la vitesse
-                              #   ...est facultative (defaut 1, décimal)
-clic, x, y, bouton            # clic en x, y
-pressButton, x,y, bouton      # presse le bouton en x, y
-releaseButton, x, y, bouton   # lâche le bouton en x, y
-write, "quelque chose"        # écrit "quelque chose" (sans les guillemets) 
-                              #   ...fonctionne sur les OS linux uniquement
-wait, n                       # attendre n secondes (décimal pour millisecondes)
+the available commands :
+move                # move the mouse
+moveHuman           # move the mouse gradually (with errors)
+click               # do a click
+pressButton         # press a button of the mouse
+releaseButton       # release a button of the mouse
+write               # write something
+writeHuman          # write something gradually
+wait                # wait some time
 """
 
-    cmd=raw_input("enter la commande (sans les paramèters, 'x' pour quitter) : ")
-    poss_cmd=['move', 'moveEasy', 'clic', 'pressButton', 'releaseButton', 'write', 'writeEasy', 'wait']
+    cmd=raw_input("enter the command ('x' to leave) : ")
+    poss_cmd=['move', 'moveHuman', 'click', 'pressButton', 'releaseButton', 'write', 'writeHuman', 'wait']
 
     while (cmd != 'x'):
         if (cmd not in poss_cmd):
-            print "choix invalide, merci de choisir parmis : \n", poss_cmd
-            cmd=raw_input("Que voulez vous faire ? ")
+            print "invalid choice, try again"
+            cmd=raw_input("enter the command ? ")
             
         else:
             valid=True
             currentAction={}
-            if (cmd in [x for x in poss_cmd if x not in ['write', 'writeEasy', 'wait']]):
-                x=raw_input("entez la coordonnée X : ")
+            if (cmd in [x for x in poss_cmd if x not in ['write', 'writeHuman', 'wait']]):
+                x=raw_input("enter the first coordinate (1 is the left border) : ")
                 (x, valid) = isValidInt(x, valid)
                 
                 if valid:
-                    y=raw_input("enter the Y coordinate : ")
+                    y=raw_input("enter the second coordinate (1 is the top border) : ")
                     (y, valid) = isValidInt(y, valid)
                     
                 if valid:
-                    if (cmd in ['clic', 'pressButton', 'releaseButton']):
-                        button = raw_input("enter le numero du bouton (defaut 1) : ")
+                    if (cmd in ['click', 'pressButton', 'releaseButton']):
+                        button = raw_input("enter the number of the button (default 1) : ")
                         if button=="":
                             currentAction={"name":cmd, "args":[x, y]}
                         else:
                             (button, valid) = isValidInt(button, valid)
                             currentAction={"name":cmd, "args":[x, y, button]}
-                    elif (cmd == 'moveEasy'):
-                        speed = raw_input("enter la vitesse (defaut 1) : ")
-                        if speed=="":
-                            currentAction={"name":cmd, "args":[x, y]}
+                    elif (cmd == 'moveHuman'):
+                        speed = raw_input("enter the speed (default 1) : ")
+                        if (speed=="") | (speed=="1"):
+                            currentAction={"name":cmd, "args":[x, y, 1]}
                         else:
                             (speed, valid) = isValidFloat(speed, valid)
                             currentAction={"name":cmd, "args":[x, y, speed]}
+                        freq = raw_input("enter the percentage of error (default 0) : ")
+                        if (freq!="") & (freq!="0"):
+                            (freq, valid) = isValidFloat(freq, valid)
+                            currentAction["args"].append(freq)
+                            if valid:
+                                amp = raw_input("enter the amplitude (default 200) : ")
+                                if (amp!="") & (amp!="200"):
+                                    (amp, valid) = isValidInt(amp, valid)
+                                    currentAction["args"].append(amp)
+                        
                     else:
                         currentAction={"name":cmd, "args":[x, y]}
 
-            elif (cmd in ['write', 'writeEasy']):
-                txt=raw_input("enter ce que vous voulez écrire : ")
+            elif (cmd in ['write', 'writeHuman']):
+                txt=raw_input("What do you want to write : ")
                 currentAction={"name":cmd, "args":[txt]}
             elif (cmd=='wait'):
-                sec=raw_input("entrez le temps que vous voulez attendre : ")
+                sec=raw_input("How long do you want to wait (in sec) : ")
                 (sec, valid) = isValidFloat(sec, valid)
                 currentAction={"name":cmd, "args":[sec]}
             
             if valid:
                 listAction.append(currentAction)
             else:
-                print "action invalide"
+                print "invalid action"
                     
-            cmd=raw_input("\nQue voulez vous faire ? ")
+            cmd=raw_input("\nEnter you command ? ")
             
     if listAction!=[]:
         with open("script/"+fileName+".json", 'w') as f:
@@ -110,76 +112,107 @@ wait, n                       # attendre n secondes (décimal pour millisecondes
 
 def loadList():
     fileName=raw_input("Enter the name of your list : ")
-    with open("script/"+fileName+".json") as f:
-        listAction=json.load(f)
-    
-    mouse_function = { 
-        'move': move_valid,
-        'moveEasy': moveEasy_valid,
-        'clic' : clic_valid
-    }
-    
-    keyboard_function = {
-        'write' : write_valid
-    }
-    
-    m = Mouse()
-    k = Keyboard()
-    for cmd in listAction:
-        # cmd contient {'name':'fonction1', 'args':['123', '456', 'abc']} par exemple
-        try:
-            funcname = cmd['name']
-        except:
-            print "...erreur il manque le nom de la méthode..."
-        
-        try:
-            params = cmd['args']
-        except:
-            params=""
+    if not os.path.isfile("script/"+fileName+".json"):
+        print "list not found"
+    else:
 
-        try:
-            func = (mouse_function[ funcname ] | keyboard_function [ funcname ] )
-        except:
-            print "...erreur fonction inconnue..."
-        try:
-            func( m, *params )
-        except:
-            print "...erreur à la fonction "+str(funcname)
-            traceback.print_exc(file=sys.stdout)
+        with open("script/"+fileName+".json") as f:
+            listAction=json.load(f)
+        
+        mouse_function = { 
+            'move': move_valid,
+            'moveHuman': moveHuman_valid,
+            'click' : click_valid,
+            'pressButton' : pressButton_valid,
+            'releaseButton' : releaseButton_valid
+        }
+        
+        keyboard_function = {
+            'write' : write_valid,
+            'writeHuman' : writeHuman_valid
+        }
+        
+        other_function= {
+            'wait' : wait_valid
+        }
+        
+        m = Mouse()
+        k = Keyboard()
+        for cmd in listAction:
+            # cmd contains {'name':'fonction1', 'args':['123', '456', 'abc']} for exemple
+            try:
+                funcname = cmd['name']
+            except:
+                print "...error, method list missing..."
+            
+            try:
+                params = cmd['args']
+            except:
+                params=""
+
+            try:
+                func = (mouse_function[ funcname ])
+            except:
+                try:
+                    func = (keyboard_function [ funcname ])
+                except:
+                    try:
+                        func = (other_function [ funcname ])
+                    except:
+                        print "...error, method unknown "+str(funcname)+"..."
+
+            try:
+                func( m, *params )
+            except Exception as e:
+                print "...error with function "+str(funcname)
+                print e
         
 
 def move_valid(m, x=None,y=None):
+    print "move"
     m.move(x,y)
 
-def moveEasy_valid(m, x=None,y=None, speed=1):
-    m.moveEasy(x,y,speed)
+def moveHuman_valid(m, x=None,y=None, speed=1, freq=0, amp=200):
+    print "moveHuman"
+    m.moveHuman(x,y,speed)
 
-def clic_valid(m, x=None, y=None, button=1):
-    m.clic(x,y,button)
+def click_valid(m, x=None, y=None, button=1):
+    print "click"
+    m.click(x,y,button)
     
-def write_valid(m):
-    pass
+def pressButton_valid(m, x=None, y=None, button=1):
+    print "press"
+    m.pressButton(x,y,button)
     
-def wait_valid(u, s):
-    valid=True
-    if s==None:
-        valid=False
-    else:
-        (s, valid) = isValidFloat(s,valid)
+def releaseButton_valid(m, x=None, y=None, button=1):
+    print "release"
+    m.releaseButton(x,y,button)
+    
+def write_valid(k,str=""):
+    print "write"
+    k.write(str)
+
+def writeHuman_valid(k,str="", speed=1):
+    print "write human"
+    k.writeHuman(str)
+        
+def wait_valid(u, sec=None):
+    print "wait"
+    (sec, valid) = isValidFloat(sec,True)
 
     if valid:
-        u.wait(s)
+        time.sleep(sec)
     else:
-        print "fonction invalide"    
+        raise InputError
 
 def isValidInt(n, valid):
     try:
         n=int(n)
         if n<0:
-            print "pas de nombre négatif"
+            print "no negative number"
             valid=False
     except:
-        print n, "n'est pas un entier valide"
+        print n, "invalid number"
         valid=False
     return (n, valid)
 
@@ -187,26 +220,48 @@ def isValidFloat(n, valid):
     try:
         n=float(n)
         if n<0:
-            print "pas de nombre négatif"
+            print "no negative number"
             valid=False
     except:
-        print n, "n'est pas un nombre valide"
+        print n, "invalid number"
         valid=False
     return (n, valid)
 
 if __name__ == '__main__':
-    choice = start()
+    print """
+           *** I am human ***
+            
+    Thank you for using my program, I hope you'll like it
+    If you have any comments, don't hesitate to contact me
+
+        [1] create a new list
+        [2] load and execute a list
+        [?] about
+        [x] quit
+        """
+    choice = raw_input("what do you want to do ? ")
+
     
     poss=tuple(('1', '2', '?', 'x'))
-    while (choice not in poss):
-        print "choix invalide, merci de choisir parmis \n", poss
-        choice = raw_input("que voulez vous faire ? ")
     
-    if (choice=='1'):
-        createList()
-    elif (choice=='2'):
-        loadList()
-    elif (choice=='?'):
-        print "not yet implemented"
-    
+    while (choice != 'x'):
+        while (choice not in poss):
+            print "invaliv choice\n", poss
+            choice = raw_input("what do you want to do ? ")
+        
+        if (choice=='1'):
+            createList()
+        elif (choice=='2'):
+            loadList()
+        elif (choice=='?'):
+            about()
+            
+        print """
+        [1] create a new list
+        [2] load and execute a list
+        [?] about
+        [x] quit
+        """
+        choice = raw_input("what do you want to do ? ")
+        
     print "see you soon"
