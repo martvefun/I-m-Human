@@ -6,20 +6,13 @@ import time
 
 m = Mouse()
 k = Keyboard()
-m.click(200,300,3)
 
 try:
-    print "move"
-    m.move(600,300)
-    time.sleep(1)
-    print "click right"
-    m.click(200,300,3)
-    time.sleep(1)
     print "click left"
-    m.click(180,280,1)
+    m.click(300,400,1)
     time.sleep(1)
     print "write"
-    k.write("Something\n")
+    k.writeHuman("azertyuioqsddfghj\n")
     time.sleep(1)
     print "move human"    
     m.moveHuman(1000,780, speed=0.5, frq=10, amp=500)

@@ -114,10 +114,15 @@ class Keyboard(object):
     
         return keycode, shift_mask
 
+    def writeKeyCode(self, k):
+        keycode = self.display.keysym_to_keycode(k)
+        self.writeCode(keycode, 0)
             
     def writeLetter(self, ch):
         keycode, shift_mask = self.char_to_keycode(ch)
-
+        self.writeCode(keycode, shift_mask)
+        
+    def writeCode(self, keycode, shift_mask):
         if (self.UseXTest==True) :
             if shift_mask != 0 :
                 Xlib.ext.xtest.fake_input(self.display, Xlib.X.KeyPress, 50)

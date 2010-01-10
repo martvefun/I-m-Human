@@ -117,9 +117,11 @@ class Mouse(object):
             try:
                 (x, y) = self.isValidPos(xFin, yFin)
                 speed = float(speed)
+                frq = float(frq)
+                amp = int(amp)
             except Error as e:
                 print e
-                raise InputError("moveEasy "+str(xFin)+", "+str(yFin)+" "+str(speed), "invalid parameters")
+                raise InputError("moveEasy "+str(xFin)+", "+str(yFin)+", "+str(speed)+", "+str(frq)+", "+str(amp), "invalid parameters")
         
         # init
         (x, y) = self.getPosition()
